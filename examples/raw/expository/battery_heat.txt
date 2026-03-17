@@ -1,0 +1,5 @@
+# Why fast charging warms a battery
+
+Fast charging pushes a large electrical current through the battery in a short amount of time. Some of that energy becomes useful chemical storage, and some is lost as heat because no real system is perfectly efficient. The faster the current moves, the more any small internal resistance matters.
+
+Good explanations separate normal warmth from danger. Mild heating during aggressive charging can be expected, especially near the top of the charge curve, but a battery that becomes very hot, swells, or smells sharp is not behaving normally. Charging control software, thermal sensors, and current limits exist to keep the cell in a safe operating window.

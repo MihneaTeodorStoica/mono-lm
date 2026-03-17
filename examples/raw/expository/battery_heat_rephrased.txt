@@ -1,0 +1,5 @@
+# Why rapid charging makes a battery feel warm
+
+Rapid charging sends a lot of current through the cell in a short window. Part of that power is stored chemically, while another part turns into heat because the battery and its wiring have small but real resistance. When current rises, those losses become easier to notice.
+
+The useful distinction is between expected warmth and a warning sign. A phone that feels a little warm during heavy charging is usually within design limits, but a pack that grows unusually hot, bulges, or gives off an acrid smell needs attention. Charging firmware, temperature monitoring, and current limits are there to keep the battery inside a safe range.

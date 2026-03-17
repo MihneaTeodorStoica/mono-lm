@@ -1,0 +1,101 @@
+[pipeline]
+name = "demo"
+seed = 7
+output_dir = "data/artifacts/demo"
+target_total_chars = 6500
+preview_chars = 420
+inspection_samples_per_family = 3
+
+[cleaning]
+normalize_unicode = true
+strip_html = true
+strip_wiki_markup = true
+strip_zero_width = true
+collapse_internal_whitespace = true
+collapse_blank_lines_to = 2
+trim_line_edges = true
+decode_html_entities = true
+
+[quality]
+min_chars = 120
+max_chars = 5000
+min_unique_chars = 18
+min_alpha_ratio = 0.55
+max_symbol_ratio = 0.24
+max_digit_ratio = 0.22
+max_nonprintable_ratio = 0.01
+max_line_length = 500
+max_duplicate_line_ratio = 0.40
+max_repeated_ngram_ratio = 0.24
+allow_urls = false
+
+[dedup]
+enabled = true
+exact = true
+near = true
+simhash_threshold = 6
+minimum_tokens_for_near_dedup = 18
+
+[formatting]
+include_family_header = true
+include_source_header = false
+include_titles = true
+document_separator = "\n\n<|endofsample|>\n\n"
+article_header = "Article"
+qa_header = "Q&A"
+conversation_header = "Conversation"
+story_header = "Story"
+
+[split]
+train = 0.7
+validation = 0.15
+test = 0.15
+
+[mixture]
+minimum_samples_per_family = 1
+
+[mixture.family_weights]
+expository = 0.35
+qa = 0.25
+dialogue = 0.25
+prose = 0.15
+
+[[sources]]
+name = "demo_expository"
+family = "expository"
+kind = "text_dir"
+path = "examples/raw/expository"
+glob = "*.txt"
+title_from_first_line = true
+sampling_weight = 1.0
+
+[[sources]]
+name = "demo_qa"
+family = "qa"
+kind = "jsonl"
+path = "examples/raw/qa/discussions.jsonl"
+question_field = "question"
+answer_field = "answer"
+context_field = "context"
+id_field = "id"
+sampling_weight = 1.0
+
+[[sources]]
+name = "demo_dialogue"
+family = "dialogue"
+kind = "jsonl"
+path = "examples/raw/dialogue/dialogues.jsonl"
+turns_field = "messages"
+turn_role_field = "role"
+turn_text_field = "content"
+id_field = "id"
+sampling_weight = 1.0
+
+[[sources]]
+name = "demo_prose"
+family = "prose"
+kind = "text_dir"
+path = "examples/raw/prose"
+glob = "*.txt"
+title_from_first_line = true
+sampling_weight = 1.0

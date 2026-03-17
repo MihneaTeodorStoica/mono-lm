@@ -1,3 +1,12 @@
+Metadata-Version: 2.4
+Name: mono-lm
+Version: 0.1.0
+Summary: Dataset preparation pipeline for the mono-lm character language model project.
+Requires-Python: >=3.12
+Description-Content-Type: text/markdown
+License-File: LICENSE
+Dynamic: license-file
+
 # mono-lm
 
 `mono-lm` now includes a full local dataset-preparation pipeline for building a character-level language-model corpus. The pipeline focuses on data quality, reproducibility, and auditability rather than raw ingestion volume.

@@ -1,0 +1,2 @@
+[console_scripts]
+mono-lm-dataset = mono_lm.dataset_pipeline.cli:main
