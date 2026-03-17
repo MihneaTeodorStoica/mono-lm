@@ -1,0 +1,25 @@
+[[sources]]
+name = "synthetic_grounded_dialogue"
+family = "dialogue"
+kind = "jsonl"
+path = "data/raw/dialogue/synthetic_grounded_dialogue.jsonl"
+turns_field = "messages"
+turn_role_field = "role"
+turn_text_field = "content"
+id_field = "id"
+group_field = "conversation_id"
+metadata_fields = ["topic"]
+sampling_weight = 1.0
+
+[[sources]]
+name = "explanatory_chat_sessions"
+family = "dialogue"
+kind = "jsonl"
+path = "data/raw/dialogue/explanatory_chat_sessions.jsonl"
+turns_field = "turns"
+turn_role_field = "speaker"
+turn_text_field = "text"
+id_field = "id"
+group_field = "session_id"
+metadata_fields = ["domain"]
+sampling_weight = 0.9

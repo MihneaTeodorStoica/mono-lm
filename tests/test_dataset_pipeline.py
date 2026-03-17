@@ -72,8 +72,17 @@ class PipelineBuildTests(unittest.TestCase):
             self.assertTrue(outputs.train_path.exists())
             report_text = outputs.report_markdown_path.read_text(encoding="utf-8")
             self.assertIn("Stage counts", report_text)
+            self.assertIn("Top sources", report_text)
             inspection_path = config.pipeline.output_dir / "reports" / "inspection.md"
             self.assertTrue(inspection_path.exists())
+            self.assertTrue((config.pipeline.output_dir / "reports" / "family_breakdown.tsv").exists())
+            self.assertTrue((config.pipeline.output_dir / "reports" / "source_breakdown.tsv").exists())
+
+    def test_catalog_based_config_loads_sources(self) -> None:
+        config = load_config(REPO_ROOT / "configs/dataset/demo_catalog.toml")
+        self.assertEqual(len(config.sources), 4)
+        self.assertEqual(len(config.source_catalog_paths), 1)
+        self.assertEqual(config.source_catalog_paths[0].name, "demo_sources.toml")
 
 
 if __name__ == "__main__":

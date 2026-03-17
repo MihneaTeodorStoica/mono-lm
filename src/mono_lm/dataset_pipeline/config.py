@@ -106,6 +106,14 @@ class MixtureConfig:
 
 
 @dataclass(slots=True)
+class ReportingConfig:
+    dominance_threshold: float = 0.38
+    top_sources: int = 12
+    preview_sources_per_family: int = 2
+    preview_samples_per_source: int = 1
+
+
+@dataclass(slots=True)
 class SourceConfig:
     name: str
     family: str
@@ -139,6 +147,7 @@ class SourceConfig:
 class BuildConfig:
     root_dir: Path
     config_path: Path
+    source_catalog_paths: tuple[Path, ...]
     pipeline: PipelineConfig
     cleaning: CleaningConfig
     quality: QualityConfig
@@ -146,6 +155,7 @@ class BuildConfig:
     formatting: FormattingConfig
     split: SplitConfig
     mixture: MixtureConfig
+    reporting: ReportingConfig
     sources: list[SourceConfig]
 
 
@@ -161,6 +171,42 @@ def _discover_project_root(config_path: Path) -> Path:
         if (candidate / "pyproject.toml").exists() or (candidate / ".git").exists():
             return candidate
     return config_path.parent
+
+
+def _resolve_globbed_paths(root: Path, patterns: list[str]) -> list[Path]:
+    matched_paths: list[Path] = []
+    seen: set[Path] = set()
+    for raw_pattern in patterns:
+        pattern = raw_pattern.strip()
+        candidates = sorted(_coerce_path(root, pattern).parent.glob(_coerce_path(root, pattern).name))
+        if not candidates:
+            raise ValueError(f"Source catalog pattern matched no files: {raw_pattern}")
+        for candidate in candidates:
+            resolved = candidate.resolve()
+            if resolved not in seen:
+                matched_paths.append(resolved)
+                seen.add(resolved)
+    return matched_paths
+
+
+def _load_source_catalog(path: Path, root: Path, visited: set[Path]) -> tuple[list[dict[str, Any]], list[Path]]:
+    resolved_path = path.resolve()
+    if resolved_path in visited:
+        raise ValueError(f"Detected cyclic source catalog include: {resolved_path}")
+    visited.add(resolved_path)
+
+    payload = tomllib.loads(resolved_path.read_text(encoding="utf-8"))
+    raw_sources = list(payload.get("sources", []))
+    catalog_paths = [resolved_path]
+    nested_patterns = [str(item) for item in payload.get("source_files", [])]
+    for nested_path in _resolve_globbed_paths(root, nested_patterns):
+        nested_sources, nested_catalogs = _load_source_catalog(nested_path, root, visited)
+        raw_sources.extend(nested_sources)
+        catalog_paths.extend(nested_catalogs)
+
+    if not raw_sources:
+        raise ValueError(f"Source catalog '{resolved_path}' did not define any [[sources]] entries.")
+    return raw_sources, catalog_paths
 
 
 def _load_source(root: Path, payload: dict[str, Any]) -> SourceConfig:
@@ -242,13 +288,22 @@ def load_config(path: str | Path) -> BuildConfig:
         minimum_samples_per_family=int(mixture_table.get("minimum_samples_per_family", 1)),
     )
 
-    raw_sources = raw.get("sources", [])
+    reporting = ReportingConfig(**raw.get("reporting", {}))
+
+    raw_sources = list(raw.get("sources", []))
+    source_catalog_paths: list[Path] = []
+    for catalog_path in _resolve_globbed_paths(root_dir, [str(item) for item in raw.get("source_files", [])]):
+        catalog_sources, catalog_paths = _load_source_catalog(catalog_path, root_dir, visited=set())
+        raw_sources.extend(catalog_sources)
+        source_catalog_paths.extend(catalog_paths)
+
     if not raw_sources:
         raise ValueError("Config must define at least one [[sources]] entry.")
     sources = [_load_source(root_dir, item) for item in raw_sources]
     return BuildConfig(
         root_dir=root_dir,
         config_path=config_path,
+        source_catalog_paths=tuple(dict.fromkeys(source_catalog_paths)),
         pipeline=pipeline,
         cleaning=cleaning,
         quality=quality,
@@ -256,5 +311,6 @@ def load_config(path: str | Path) -> BuildConfig:
         formatting=formatting,
         split=split,
         mixture=mixture,
+        reporting=reporting,
         sources=sources,
     )

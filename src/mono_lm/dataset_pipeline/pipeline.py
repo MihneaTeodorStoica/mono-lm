@@ -10,6 +10,7 @@ from .mixing import select_mixture
 from .models import PipelineOutputs, RejectedSample
 from .reporting import (
     build_report,
+    write_breakdown_tsv,
     write_character_inventory,
     write_inspection_markdown,
     write_manifest,
@@ -91,14 +92,56 @@ class DatasetPipeline:
             split_assignments=split_assignments,
         )
         write_json(reports_dir / "report.json", report)
-        write_markdown_report(reports_dir / "report.md", report)
+        write_markdown_report(reports_dir / "report.md", report, top_sources=self.config.reporting.top_sources)
         write_character_inventory(reports_dir / "character_inventory.tsv", "".join(final_texts.values()))
+        write_breakdown_tsv(
+            reports_dir / "family_breakdown.tsv",
+            (
+                {"family": family, **stats}
+                for family, stats in sorted(
+                    report["families"].items(),
+                    key=lambda item: (-int(item[1]["selected_chars"]), item[0]),
+                )
+            ),
+            columns=[
+                "family",
+                "available_samples",
+                "available_chars",
+                "selected_samples",
+                "selected_chars",
+                "target_chars",
+                "selected_share",
+            ],
+        )
+        write_breakdown_tsv(
+            reports_dir / "source_breakdown.tsv",
+            (
+                {"source_name": source_name, **stats}
+                for source_name, stats in sorted(
+                    report["sources"].items(),
+                    key=lambda item: (-int(item[1]["selected_chars"]), item[0]),
+                )
+            ),
+            columns=[
+                "source_name",
+                "family",
+                "loaded_samples",
+                "loaded_chars",
+                "after_quality_samples",
+                "after_quality_chars",
+                "selected_samples",
+                "selected_chars",
+                "selected_share",
+            ],
+        )
         write_inspection_markdown(
             reports_dir / "inspection.md",
             selected_samples=selected_samples,
             rejected_samples=rejected_samples,
             per_family=self.config.pipeline.inspection_samples_per_family,
             preview_chars=self.config.pipeline.preview_chars,
+            preview_sources_per_family=self.config.reporting.preview_sources_per_family,
+            preview_samples_per_source=self.config.reporting.preview_samples_per_source,
         )
 
         config_snapshot = output_dir / "config.used.toml"
@@ -106,10 +149,13 @@ class DatasetPipeline:
         manifest = {
             "pipeline": self.config.pipeline.name,
             "config_snapshot": str(config_snapshot),
+            "source_catalogs": [str(path) for path in self.config.source_catalog_paths],
             "reports": {
                 "json": str(reports_dir / "report.json"),
                 "markdown": str(reports_dir / "report.md"),
                 "character_inventory": str(reports_dir / "character_inventory.tsv"),
+                "family_breakdown": str(reports_dir / "family_breakdown.tsv"),
+                "source_breakdown": str(reports_dir / "source_breakdown.tsv"),
                 "inspection": str(reports_dir / "inspection.md"),
             },
             "intermediate": {

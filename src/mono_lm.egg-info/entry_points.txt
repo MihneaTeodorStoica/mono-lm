@@ -1,2 +1,3 @@
 [console_scripts]
 mono-lm-dataset = mono_lm.dataset_pipeline.cli:main
+mono-lm-train = mono_lm.training.cli:main

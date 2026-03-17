@@ -60,6 +60,12 @@ qa = 0.24
 dialogue = 0.24
 prose = 0.14
 
+[reporting]
+dominance_threshold = 0.38
+top_sources = 12
+preview_sources_per_family = 2
+preview_samples_per_source = 1
+
 [[sources]]
 name = "expository_texts"
 family = "expository"

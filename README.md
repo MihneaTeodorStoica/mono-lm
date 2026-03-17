@@ -1,111 +1,164 @@
 # mono-lm
 
-`mono-lm` now includes a full local dataset-preparation pipeline for building a character-level language-model corpus. The pipeline focuses on data quality, reproducibility, and auditability rather than raw ingestion volume.
+`mono-lm` now includes both sides of the first project workflow:
 
-## What It Does
+- a local corpus-building pipeline for character-level language model data,
+- a first end-to-end character-level Transformer training stack.
 
-The dataset pipeline is designed for the corpus mix described in the project brief:
+The project stays intentionally local-first. The data tooling is built around reproducible corpus assembly from local files, not scraping, and the training layer consumes the exported corpus artifacts directly.
 
-- expository / informational text,
-- grounded Q&A and discussion,
-- synthetic or structured dialogue,
-- long-form prose.
+## What The Repo Can Do
 
-It supports:
+### Corpus building
 
-- multiple local source families in one run,
-- unified sample formatting for character-level training,
+The dataset pipeline supports:
+
 - cleaning and normalization,
 - low-signal filtering,
 - exact and near-duplicate removal,
 - configurable family/source mixtures,
-- deterministic train / validation / test splitting,
-- stage artifacts and reports for auditing,
-- sample inspection before training.
+- deterministic train/validation/test splits,
+- modular source catalogs for larger local inventories,
+- source/family composition reports with character-share breakdowns,
+- dominance warnings when one family or source takes too much of the final corpus,
+- representative cleaned sample inspection before training.
+
+### Training
+
+The training workflow supports:
+
+- character vocabulary building and persistence,
+- encoded corpus preparation from exported dataset artifacts,
+- a decoder-only autoregressive Transformer baseline,
+- training with validation during the run,
+- checkpoints for resume/restart,
+- periodic sample generation,
+- standalone text generation from saved checkpoints.
 
 ## Project Layout
 
 ```text
-configs/dataset/
-  demo.toml
-  default.toml
+configs/
+  dataset/
+    demo.toml
+    demo_catalog.toml
+    default.toml
+    large_local.toml
+    sources/
+  training/
+    tiny.toml
+    baseline.toml
 examples/raw/
-  expository/
-  qa/
-  dialogue/
-  prose/
-src/mono_lm/dataset_pipeline/
+src/mono_lm/
+  dataset_pipeline/
+  training/
 tests/
 ```
 
-## Quick Start
+## Installation
 
-Install the package into the existing virtual environment:
+Install into the existing virtual environment:
 
 ```bash
 ./.venv/bin/pip install -e .
 ```
 
-Run the demo pipeline:
+For the training commands, install a platform-appropriate PyTorch build into the same environment. For a CPU-only Linux setup, for example:
+
+```bash
+./.venv/bin/pip install --index-url https://download.pytorch.org/whl/cpu torch
+```
+
+## Quick Start
+
+Build the runnable demo corpus:
 
 ```bash
 ./.venv/bin/mono-lm-dataset build --config configs/dataset/demo.toml
 ```
 
-Inspect selected cleaned samples:
+Inspect the configured demo inventory through the catalog-based workflow:
+
+```bash
+./.venv/bin/mono-lm-dataset inventory --config configs/dataset/demo_catalog.toml
+```
+
+Inspect cleaned selected samples:
 
 ```bash
 ./.venv/bin/mono-lm-dataset inspect --artifact-dir data/artifacts/demo --stage selected --limit 6
 ```
 
-Inspect rejected samples:
+Prepare encoded training data:
 
 ```bash
-./.venv/bin/mono-lm-dataset inspect --artifact-dir data/artifacts/demo --stage rejected --limit 6
+./.venv/bin/mono-lm-train prepare --config configs/training/tiny.toml
 ```
 
-## Supported Source Types
+Train the first baseline:
 
-The pipeline currently supports local:
+```bash
+./.venv/bin/mono-lm-train train --config configs/training/tiny.toml
+```
 
-- `text_dir`: a directory of text or markdown-like files,
-- `text_file`: a single text file,
-- `jsonl`: structured one-record-per-line datasets,
-- `csv`: structured tabular datasets.
+Generate from the latest checkpoint:
 
-Each source declares a `family` and a `layout`.
+```bash
+./.venv/bin/mono-lm-train sample --run-dir data/runs/tiny-demo --prompt "Question: Why does a battery get warm?"
+```
 
-Supported families:
+## Dataset Workflow
+
+### Supported source kinds
+
+- `text_dir`: directory of local text/markdown-like files
+- `text_file`: single local text file
+- `jsonl`: one record per line
+- `csv`: tabular local corpus
+
+### Supported families
 
 - `expository`
 - `qa`
 - `dialogue`
 - `prose`
 
-Supported layouts:
+### Supported layouts
 
 - `document`
 - `qa`
 - `dialogue`
 
-## Config Model
+### Config structure
 
-Configs are TOML files. The important sections are:
+Dataset configs are TOML files with these main sections:
 
-- `[pipeline]`: name, seed, output directory, target character budget, inspection preview settings
-- `[cleaning]`: normalization and markup cleanup behavior
-- `[quality]`: quality thresholds and rejection guards
-- `[dedup]`: exact and near-duplicate controls
-- `[formatting]`: canonical headers and sample separator
-- `[split]`: train / validation / test ratios
-- `[mixture]`: family weights, optional source weights, minimum samples per family
-- `[[sources]]`: enabled datasets and their source-specific schema
+- `source_files`: optional list of TOML source catalogs to include
+- `[pipeline]`: output location, target character budget, preview sizing
+- `[cleaning]`: normalization and markup cleanup
+- `[quality]`: rejection thresholds
+- `[dedup]`: exact/near duplicate controls
+- `[formatting]`: final sample structure and separators
+- `[split]`: train/validation/test ratios
+- `[mixture]`: family weights, source weights, minimum family presence
+- `[reporting]`: source dominance thresholds and preview settings
+- `[[sources]]`: inline source entries when you want everything in one file
 
-The demo config is runnable immediately. The default config is a template for real local corpora under `data/raw/`.
+### Modular source catalogs
 
-## Output Artifacts
+For larger local builds, keep the top-level recipe small and move source lists into `source_files`.
 
-A build writes the following under the configured output directory:
+The repo includes:
+
+- `configs/dataset/demo_catalog.toml`: runnable catalog-based example using the bundled demo corpora
+- `configs/dataset/large_local.toml`: larger local-build template
+- `configs/dataset/sources/*.toml`: example source catalog fragments by family
+
+This makes it easy to grow from a handful of demo datasets to dozens of local corpora without turning one config into an audit nightmare.
+
+### Reports and artifacts
+
+A dataset build writes:
 
 ```text
 data/artifacts/<run-name>/
@@ -129,41 +182,96 @@ data/artifacts/<run-name>/
     report.json
     report.md
     character_inventory.tsv
+    family_breakdown.tsv
+    source_breakdown.tsv
     inspection.md
 ```
 
-These artifacts are intended to make the corpus easy to audit:
+The reporting layer is meant to answer the practical corpus questions quickly:
 
-- raw versus cleaned versus selected stage dumps,
-- explicit rejection reasons,
-- per-source and per-family mixture stats,
-- character inventory for future chunking / training decisions,
-- inspection samples for manual review.
+- what actually made it into the final corpus,
+- which families dominate the character count,
+- which individual sources dominate,
+- what the cleaned samples look like,
+- why records were rejected.
 
-## Formatting Strategy
+## Adding More Local Corpora
 
-The final text is intentionally prepared rather than dumped raw. The formatter uses stable, lightweight structure:
+1. Put the corpus somewhere under your local `data/raw/` tree.
+2. Add or edit a source catalog in `configs/dataset/sources/`.
+3. Point a build config at that catalog through `source_files`.
+4. Run `mono-lm-dataset inventory` to confirm the source mix.
+5. Run `mono-lm-dataset build`.
+6. Review `report.md`, `source_breakdown.tsv`, and `inspection.md` before training.
 
-- expository samples are emitted as article-like text,
-- Q&A samples use `Question:` / `Answer:` labels,
-- dialogue samples use normalized speaker turns such as `User:` and `Assistant:`,
-- prose samples keep a story-like title/body shape.
+If you need a new file convention, extend the loaders in [sources.py](/home/mihnea/Programming/GitHub/mono-lm/src/mono_lm/dataset_pipeline/sources.py) and keep the current `RawSample -> ProcessedSample -> selected split artifacts` flow intact.
 
-Each sample is joined with a configurable separator, which helps preserve stable boundaries for character-level training.
+## Training Workflow
 
-## Extending The Pipeline
+The first model stack is intentionally a clean baseline:
 
-To add a new source:
+- character-level vocabulary
+- decoder-only Transformer
+- next-character training objective
+- validation loss and bits-per-character tracking
+- checkpoints plus resume
+- prompt-based sampling
 
-1. Put the corpus somewhere local.
-2. Add a new `[[sources]]` block in a dataset config.
-3. Point it at the correct local path and schema fields.
-4. Rebuild and inspect the stage artifacts.
+### Training config structure
 
-If you need a new file format or source convention, add another loader in [sources.py](/home/mihnea/Programming/GitHub/mono-lm/src/mono_lm/dataset_pipeline/sources.py) and keep the unified `RawSample -> ProcessedSample` flow intact.
+Training configs are TOML files with:
 
-## Running Tests
+- `[run]`: run directory, seed, device
+- `[data]`: input artifact directory or explicit split paths, prepared output directory
+- `[model]`: context length and Transformer size
+- `[optimizer]`: AdamW and learning-rate schedule settings
+- `[training]`: batch size, steps, eval/checkpoint/sample cadence
+- `[generation]`: default validation/sample prompt and sampling controls
+
+### Prepared artifacts
+
+`mono-lm-train prepare` writes:
+
+```text
+data/prepared/<run-name>/
+  corpus_manifest.json
+  vocab.json
+  train.npy
+  validation.npy
+  test.npy
+```
+
+### Training outputs
+
+`mono-lm-train train` writes:
+
+```text
+data/runs/<run-name>/
+  config.used.toml
+  metrics.jsonl
+  run_summary.json
+  checkpoints/
+    latest.pt
+    best.pt
+    step_0000500.pt
+  samples/
+    step_0000500.txt
+```
+
+### Included training presets
+
+- `configs/training/tiny.toml`: fast sanity-check run on the demo corpus
+- `configs/training/baseline.toml`: stronger baseline intended for a larger local build
+
+## Tests
+
+Run the test suite with:
 
 ```bash
 ./.venv/bin/python -m unittest discover -s tests -v
 ```
+
+## Notes
+
+- `data/raw/`, `data/artifacts/`, `data/prepared/`, and `data/runs/` are ignored so you can iterate locally without polluting the repo.
+- If you rebuild a corpus and want to regenerate encoded training arrays, rerun `mono-lm-train prepare --force`.

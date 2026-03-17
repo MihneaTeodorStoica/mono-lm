@@ -1,0 +1,28 @@
+[[sources]]
+name = "books_expository"
+family = "expository"
+kind = "text_dir"
+path = "data/raw/expository/books"
+glob = "**/*.txt"
+title_from_first_line = true
+sampling_weight = 1.2
+
+[[sources]]
+name = "technical_notes"
+family = "expository"
+kind = "text_dir"
+path = "data/raw/expository/technical_notes"
+glob = "**/*.md"
+title_from_first_line = true
+sampling_weight = 1.0
+
+[[sources]]
+name = "reference_articles"
+family = "expository"
+kind = "jsonl"
+path = "data/raw/expository/reference_articles.jsonl"
+title_field = "title"
+text_field = "text"
+id_field = "id"
+metadata_fields = ["topic"]
+sampling_weight = 0.9

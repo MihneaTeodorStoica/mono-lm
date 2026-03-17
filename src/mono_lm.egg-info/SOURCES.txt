@@ -6,6 +6,7 @@ src/mono_lm.egg-info/PKG-INFO
 src/mono_lm.egg-info/SOURCES.txt
 src/mono_lm.egg-info/dependency_links.txt
 src/mono_lm.egg-info/entry_points.txt
+src/mono_lm.egg-info/requires.txt
 src/mono_lm.egg-info/top_level.txt
 src/mono_lm/dataset_pipeline/__init__.py
 src/mono_lm/dataset_pipeline/__main__.py
@@ -22,4 +23,14 @@ src/mono_lm/dataset_pipeline/reporting.py
 src/mono_lm/dataset_pipeline/sources.py
 src/mono_lm/dataset_pipeline/splitting.py
 src/mono_lm/dataset_pipeline/utils.py
+src/mono_lm/training/__init__.py
+src/mono_lm/training/__main__.py
+src/mono_lm/training/cli.py
+src/mono_lm/training/config.py
+src/mono_lm/training/corpus.py
+src/mono_lm/training/generation.py
+src/mono_lm/training/model.py
+src/mono_lm/training/trainer.py
+src/mono_lm/training/vocabulary.py
 tests/test_dataset_pipeline.py
+tests/test_training_workflow.py

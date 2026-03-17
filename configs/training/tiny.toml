@@ -1,0 +1,44 @@
+[run]
+name = "tiny-demo"
+output_dir = "data/runs/tiny-demo"
+seed = 7
+device = "auto"
+compile = false
+
+[data]
+artifact_dir = "data/artifacts/demo"
+prepared_dir = "data/prepared/tiny-demo"
+reuse_prepared = true
+
+[model]
+context_length = 96
+d_model = 96
+num_layers = 3
+num_heads = 4
+ffw_multiplier = 4.0
+dropout = 0.1
+bias = true
+
+[optimizer]
+learning_rate = 0.0008
+min_learning_rate = 0.00008
+weight_decay = 0.01
+beta1 = 0.9
+beta2 = 0.95
+grad_clip_norm = 1.0
+
+[training]
+batch_size = 16
+max_steps = 400
+warmup_steps = 40
+eval_interval = 50
+eval_batches = 8
+log_interval = 10
+checkpoint_interval = 100
+sample_interval = 50
+
+[generation]
+prompt = "Question: Why does a battery get warm during fast charging?\n\nAnswer:"
+max_new_chars = 220
+temperature = 0.9
+top_k = 32

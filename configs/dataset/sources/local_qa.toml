@@ -1,0 +1,25 @@
+[[sources]]
+name = "grounded_forum_qa"
+family = "qa"
+kind = "jsonl"
+path = "data/raw/qa/grounded_forum_qa.jsonl"
+question_field = "question"
+answer_field = "answer"
+context_field = "context"
+id_field = "id"
+group_field = "thread_id"
+metadata_fields = ["topic"]
+sampling_weight = 1.0
+
+[[sources]]
+name = "support_knowledge_qa"
+family = "qa"
+kind = "csv"
+path = "data/raw/qa/support_knowledge.csv"
+question_field = "question"
+answer_field = "answer"
+context_field = "context"
+id_field = "id"
+group_field = "article_id"
+metadata_fields = ["product"]
+sampling_weight = 0.95

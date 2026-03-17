@@ -1,0 +1,17 @@
+[[sources]]
+name = "long_form_stories"
+family = "prose"
+kind = "text_dir"
+path = "data/raw/prose/stories"
+glob = "**/*.txt"
+title_from_first_line = true
+sampling_weight = 1.0
+
+[[sources]]
+name = "essays_and_reflections"
+family = "prose"
+kind = "text_dir"
+path = "data/raw/prose/essays"
+glob = "**/*.md"
+title_from_first_line = true
+sampling_weight = 0.85

@@ -1,7 +1,9 @@
+source_files = ["configs/dataset/sources/demo_sources.toml"]
+
 [pipeline]
-name = "demo"
-seed = 7
-output_dir = "data/artifacts/demo"
+name = "demo-catalog"
+seed = 11
+output_dir = "data/artifacts/demo-catalog"
 target_total_chars = 6500
 preview_chars = 420
 inspection_samples_per_family = 3
@@ -65,43 +67,3 @@ dominance_threshold = 0.42
 top_sources = 8
 preview_sources_per_family = 2
 preview_samples_per_source = 1
-
-[[sources]]
-name = "demo_expository"
-family = "expository"
-kind = "text_dir"
-path = "examples/raw/expository"
-glob = "*.txt"
-title_from_first_line = true
-sampling_weight = 1.0
-
-[[sources]]
-name = "demo_qa"
-family = "qa"
-kind = "jsonl"
-path = "examples/raw/qa/discussions.jsonl"
-question_field = "question"
-answer_field = "answer"
-context_field = "context"
-id_field = "id"
-sampling_weight = 1.0
-
-[[sources]]
-name = "demo_dialogue"
-family = "dialogue"
-kind = "jsonl"
-path = "examples/raw/dialogue/dialogues.jsonl"
-turns_field = "messages"
-turn_role_field = "role"
-turn_text_field = "content"
-id_field = "id"
-sampling_weight = 1.0
-
-[[sources]]
-name = "demo_prose"
-family = "prose"
-kind = "text_dir"
-path = "examples/raw/prose"
-glob = "*.txt"
-title_from_first_line = true
-sampling_weight = 1.0

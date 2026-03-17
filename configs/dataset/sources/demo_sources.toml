@@ -1,0 +1,39 @@
+[[sources]]
+name = "demo_expository"
+family = "expository"
+kind = "text_dir"
+path = "examples/raw/expository"
+glob = "*.txt"
+title_from_first_line = true
+sampling_weight = 1.0
+
+[[sources]]
+name = "demo_qa"
+family = "qa"
+kind = "jsonl"
+path = "examples/raw/qa/discussions.jsonl"
+question_field = "question"
+answer_field = "answer"
+context_field = "context"
+id_field = "id"
+sampling_weight = 1.0
+
+[[sources]]
+name = "demo_dialogue"
+family = "dialogue"
+kind = "jsonl"
+path = "examples/raw/dialogue/dialogues.jsonl"
+turns_field = "messages"
+turn_role_field = "role"
+turn_text_field = "content"
+id_field = "id"
+sampling_weight = 1.0
+
+[[sources]]
+name = "demo_prose"
+family = "prose"
+kind = "text_dir"
+path = "examples/raw/prose"
+glob = "*.txt"
+title_from_first_line = true
+sampling_weight = 1.0
