@@ -1,0 +1,6 @@
+# Install mono-lm and its base dependencies from pyproject.toml.
+-e .
+
+# Training and sampling commands also require a platform-appropriate PyTorch build.
+# If your configured package index serves torch, you can replace the line above with:
+# -e .[train]
