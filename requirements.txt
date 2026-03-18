@@ -1,6 +1,5 @@
-# Install mono-lm and its base dependencies from pyproject.toml.
--e .
+# Core package dependency.
+numpy>=2.1,<3
 
-# Training and sampling commands also require a platform-appropriate PyTorch build.
-# If your configured package index serves torch, you can replace the line above with:
-# -e .[train]
+# Training and sampling stack used by the project tests and CLI.
+torch>=2.6,<3
